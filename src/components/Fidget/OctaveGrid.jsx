@@ -381,7 +381,7 @@ export default function OctaveGrid() {
       </div>
 
       <p className="text-xs text-pink-300/50 mt-3 text-center">
-        All 3 octaves directly at your fingertips — play your own melodies or listen to random classical demos ✨
+        All 3 octaves directly at your fingertips: play your own melodies or listen to random classical demos ✨
       </p>
     </div>
   );

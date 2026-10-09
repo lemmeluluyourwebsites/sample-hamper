@@ -36,7 +36,7 @@ export default function OpenWhenCard() {
 
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-              My Open—When Letters
+              My Open When Letters
               <Heart className="w-3.5 h-3.5 text-[#ff85a1] fill-[#ff85a1]" />
             </h3>
             <p className="text-xs text-pink-200/70 mt-0.5 font-light">

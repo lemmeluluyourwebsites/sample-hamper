@@ -8,13 +8,13 @@ import OctaveGrid from './OctaveGrid';
 
 export default function FidgetSection() {
   return (
-    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-28 flex flex-col items-center">
+    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-48 flex flex-col items-center">
       <div className="w-full max-w-md space-y-8">
         {/* Section Title Header */}
         <div className="text-center pt-2 pb-1">
           <h2 className="text-2xl font-bold text-white tracking-tight">Sensory Relief Playground</h2>
           <p className="text-xs text-pink-200/70 mt-1">
-            Scroll down to explore each tactile fidget — tap, drag, play & unwind
+            Scroll down to explore each tactile fidget: tap, drag, play and unwind
           </p>
         </div>
 
@@ -93,6 +93,9 @@ export default function FidgetSection() {
           </div>
           <OctaveGrid />
         </motion.div>
+
+        {/* Generous bottom spacer so navigation bar never overlaps bottom content */}
+        <div className="w-full h-24 pointer-events-none" />
       </div>
     </div>
   );

@@ -246,7 +246,7 @@ export default function CatchHeartsGame() {
             <span className="text-4xl mb-2">🧺</span>
             <h3 className="text-xl font-bold text-white mb-1">Catch the Hearts</h3>
             <p className="text-xs text-pink-200/80 max-w-xs mb-4">
-              Drag basket left and right — catch Hearts (+1) & Kisses (+2), avoid Rainclouds (-1). Speed ramps up as you score!
+              Drag basket left and right: catch Hearts (+1) and Kisses (+2), avoid Rainclouds (-1). Speed ramps up as you score!
             </p>
             <button
               onClick={handleStart}
@@ -259,7 +259,7 @@ export default function CatchHeartsGame() {
       </div>
 
       <p className="text-xs text-pink-300/50 mt-3 text-center">
-        Speed gradually ramps up with every point — test your reflexes and hold on tight!
+        Speed gradually ramps up with every point: test your reflexes and hold on tight!
       </p>
     </div>
   );

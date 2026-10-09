@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sparkles, Camera, RotateCcw, Heart } from 'lucide-react';
@@ -41,7 +41,6 @@ export default function PetalByPetal() {
     const dy = e.clientY - start.y;
     const distance = Math.hypot(dx, dy);
 
-    // Only detaches when dragged/swiped outward past 22px
     if (distance > 22) {
       delete dragStartPos.current[index];
       detachPetal(index, dx, dy);
@@ -113,22 +112,13 @@ export default function PetalByPetal() {
     setWinnerText('');
   };
 
-  const detachedCount = petals.filter((p) => p.isDetached).length;
-
   return (
     <div className="w-full flex flex-col items-center select-none">
-      {/* Header Bar — DO NOT disclose petal count, keep outcome unpredictable */}
+      {/* Header Bar */}
       <div className="w-full flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-1.5 text-xs text-pink-200/80 font-medium">
           <Heart className="w-3.5 h-3.5 text-[#ff85a1] fill-[#ff85a1]" />
-          <span>
-            Sunflower Bloom
-            {lastPluckedText && (
-              <span className="ml-1.5 text-white font-bold text-pink-glow">
-                — {lastPluckedText}
-              </span>
-            )}
-          </span>
+          <span>Sunflower Bloom</span>
         </div>
 
         <button
@@ -140,7 +130,7 @@ export default function PetalByPetal() {
         </button>
       </div>
 
-      {/* Realistic Flower Arena with touch-action: pan-y outside the petals */}
+      {/* Realistic Flower Arena */}
       <div
         style={{ touchAction: 'pan-y' }}
         className="relative w-full aspect-square max-w-[370px] rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] flex items-center justify-center bg-gradient-to-b from-black via-[#0d0711] to-black"
@@ -148,7 +138,7 @@ export default function PetalByPetal() {
         {/* Soft floral glow */}
         <div className="absolute w-56 h-56 bg-pink-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Center of the Flower: Natural Botanical Seed Core (NO photo in between) */}
+        {/* Center Botanical Seed Core */}
         <div className="relative z-10 w-22 h-22 rounded-full border-2 border-amber-400/40 shadow-[inset_0_0_15px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.3)] flex items-center justify-center bg-gradient-to-tr from-amber-950 via-amber-800 to-amber-700 overflow-hidden">
           <div className="absolute inset-0 opacity-45 bg-[radial-gradient(#fde68a_1px,transparent_1px)] [background-size:5px_5px]" />
           <div className="w-14 h-14 rounded-full border border-amber-400/30 bg-amber-950/70 flex items-center justify-center shadow-inner">
@@ -156,7 +146,7 @@ export default function PetalByPetal() {
           </div>
         </div>
 
-        {/* 30-35 Realistic Botanical Petals Layered Around Center */}
+        {/* 30-35 Realistic Botanical Petals */}
         {petals.map((petal, index) => {
           const rad = (petal.angle * Math.PI) / 180;
           const distance = 86;
@@ -180,7 +170,6 @@ export default function PetalByPetal() {
                   }}
                   className="z-20 cursor-grab active:cursor-grabbing select-none"
                 >
-                  {/* Realistic tapered botanical petal shape via SVG with delicate gradient & center spine */}
                   <svg width="20" height="88" viewBox="0 0 20 88" className="filter drop-shadow-[0_2px_5px_rgba(255,133,161,0.35)]">
                     <defs>
                       <linearGradient id={`petalGrad-${petal.id}`} x1="0%" y1="100%" x2="0%" y2="0%">
@@ -199,7 +188,6 @@ export default function PetalByPetal() {
                   </svg>
                 </div>
               ) : (
-                /* Falling detached petal fluttering away along swipe trajectory */
                 <motion.div
                   key={`detached-${petal.id}`}
                   initial={{
@@ -233,9 +221,29 @@ export default function PetalByPetal() {
         })}
       </div>
 
-      <p className="text-xs text-pink-300/50 mt-3 text-center">
-        Swipe petals outward into the breeze — alternating turns until the final secret petal determines the winner 💕
-      </p>
+      {/* PROMINENT HIGHLIGHTED PHRASE DIRECTLY AT THE BOTTOM OF THE FLOWER */}
+      <div className="w-full max-w-[370px] mt-3 flex flex-col items-center">
+        {lastPluckedText ? (
+          <motion.div
+            key={lastPluckedText + petals.filter((p) => p.isDetached).length}
+            initial={{ scale: 0.85, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-pink-500/25 via-pink-400/35 to-rose-500/25 border-2 border-pink-400 text-center shadow-[0_0_25px_rgba(255,133,161,0.5)]"
+          >
+            <div className="text-base sm:text-lg font-bold text-white tracking-wide flex items-center justify-center gap-2">
+              <span className="text-xl">🌸</span>
+              <span className="text-pink-glow">{lastPluckedText}</span>
+              <span className="text-xl">💖</span>
+            </div>
+          </motion.div>
+        ) : (
+          <div className="w-full py-2 px-3 rounded-xl bg-pink-500/10 border border-pink-400/20 text-center">
+            <span className="text-xs text-pink-200/80 font-medium">
+              Swipe petals outward into the breeze to reveal love verdicts 💕
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Finishing Victory Moment: Dedicated Couple Keepsake & Mandatory Boyfriend Screenshot Modal */}
       <AnimatePresence>
@@ -294,7 +302,7 @@ export default function PetalByPetal() {
                   </h3>
 
                   <p className="text-xs text-pink-200/80 mb-4 px-2">
-                    The petals have spoken — his heart overflows with infinite warmth and love for you every day.
+                    The petals have spoken, his heart overflows with infinite warmth and love for you every day.
                   </p>
                 </>
               )}

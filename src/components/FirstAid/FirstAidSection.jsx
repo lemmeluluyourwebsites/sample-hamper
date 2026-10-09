@@ -28,7 +28,7 @@ export default function FirstAidSection() {
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-28 flex flex-col items-center">
+    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-48 flex flex-col items-center">
       <div className="w-full max-w-md space-y-4">
         {/* Header Greeting */}
         <motion.div
@@ -128,7 +128,7 @@ export default function FirstAidSection() {
           </div>
         </motion.div>
 
-        {/* Feature 3: My Open—When Letters (Placed right before Reasons I Love You Jar) */}
+        {/* Feature 3: My Open When Letters */}
         <OpenWhenCard />
 
         {/* Feature 4: Reasons I Love You Jar */}
@@ -165,6 +165,9 @@ export default function FirstAidSection() {
             </span>
           </div>
         </motion.div>
+
+        {/* Generous bottom spacer so navigation bar never overlaps bottom content */}
+        <div className="w-full h-24 pointer-events-none" />
       </div>
 
       {/* Modals */}

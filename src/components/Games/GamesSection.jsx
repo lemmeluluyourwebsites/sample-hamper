@@ -7,13 +7,13 @@ import PetalByPetal from './PetalByPetal';
 
 export default function GamesSection() {
   return (
-    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-28 flex flex-col items-center">
+    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-48 flex flex-col items-center">
       <div className="w-full max-w-md space-y-8">
         {/* Section Title Header */}
         <div className="text-center pt-2 pb-1">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Cozy Mini—Games</h2>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Cozy Mini Games</h2>
           <p className="text-xs text-pink-200/70 mt-1">
-            Scroll down to play each gentle game — designed to bring warmth and smiles
+            Scroll down to play each gentle game, designed to bring warmth and smiles
           </p>
         </div>
 
@@ -30,7 +30,7 @@ export default function GamesSection() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Catch the Hearts</h3>
-              <p className="text-[11px] text-pink-200/60">Catch hearts and kisses — dynamic speed scaling as you score</p>
+              <p className="text-[11px] text-pink-200/60">Catch hearts and kisses: dynamic speed scaling as you score</p>
             </div>
           </div>
           <CatchHeartsGame />
@@ -49,7 +49,7 @@ export default function GamesSection() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Cupid’s Worry Popper</h3>
-              <p className="text-[11px] text-pink-200/60">Tap or aim with bow to pop stresses into sweet affirmations</p>
+              <p className="text-[11px] text-pink-200/60">Touch bow and pull back to pop stresses into sweet affirmations</p>
             </div>
           </div>
           <CupidsWorryPopper />
@@ -73,6 +73,9 @@ export default function GamesSection() {
           </div>
           <PetalByPetal />
         </motion.div>
+
+        {/* Generous bottom spacer so navigation bar never overlaps bottom content */}
+        <div className="w-full h-24 pointer-events-none" />
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ A mobile-first, glassmorphic digital sanctuary and interactive playground. Craft
 ### 💖 Category 1: First Aid (Emotional Support)
 - **Need to Vent?:** A safe venting modal. Writing your thoughts and pressing "Burn It & Release" triggers a procedural canvas flame animation over the words, shakes the container, dissolves the text to ash, and releases rising smoke particles before serene dismissal.
 - **Quick Comfort Delivery:** Instant comfort buttons (*"I need a hug"*, *"I need a kiss"*, *"I need both"*) delivering vertical 9:16 animated cards, personalized comforting messages, and loving reassurance.
-- **My Open—When Letters:** A dedicated card providing direct access to custom open-when letters crafted specially for every emotional moment and milestone.
+- **My Open When Letters:** A dedicated card providing direct access to custom open-when letters crafted specially for every emotional moment and milestone.
 - **Reasons I Love You Jar:** An ultra-realistic 3D cylindrical glass jar graphic with specular highlights and cork stopper. Tapping the jar triggers an animation of a sealed pink envelope floating out, sliding its flap open, and revealing an unfolding handwritten love letter.
 
 ---

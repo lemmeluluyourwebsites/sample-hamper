@@ -9,21 +9,21 @@ const COMFORT_DATA = {
     media: '/assets/hug.gif',
     badge: 'Warmest Embrace',
     message:
-      "Wrap both arms tightly around yourself and squeeze. Close your eyes. Imagine my chin resting on your head, holding you safe from the entire world. Everything will be okay, my sweet girl—I'm right here with you.",
+      "Wrap both arms tightly around yourself and squeeze. Close your eyes. Imagine my chin resting on your head, holding you safe from the entire world. Everything will be okay, my sweet girl, I'm right here with you.",
   },
   kiss: {
     title: 'Sweet Gentle Kisses 💋',
     media: '/assets/kiss.gif',
     badge: 'Infinite Affection',
     message:
-      "One little kiss on your forehead, soft kisses across your eyelashes, and the sweetest kiss on your lips. You are so precious, so deeply adored—the sweetest part of my entire universe.",
+      "One little kiss on your forehead, soft kisses across your eyelashes, and the sweetest kiss on your lips. You are so precious, so deeply adored, the sweetest part of my entire universe.",
   },
   both: {
     title: 'The Full Comfort Treatment 💖',
     media: '/assets/both.gif',
     badge: 'Hug + Endless Kisses',
     message:
-      "Holding you as close as possible while raining soft kisses on you until you smile. Rest your head on my chest, listen to my heartbeat, and let all the stress melt away. You are never doing life alone—I love you so much.",
+      "Holding you as close as possible while raining soft kisses on you until you smile. Rest your head on my chest, listen to my heartbeat, and let all the stress melt away. You are never doing life alone, I love you so much.",
   },
 };
 
@@ -61,7 +61,7 @@ export default function ComfortModal({ type, isOpen, onClose }) {
 
           <h2 className="text-xl font-bold text-white mb-2">{data.title}</h2>
 
-          {/* Vertical GIF container (aspect ratio 9:16 / tall vertical) so faces are not cut */}
+          {/* Vertical GIF container (aspect ratio 9:16 / tall vertical) */}
           <div className="relative w-full max-w-[260px] h-[330px] max-h-[46vh] rounded-2xl overflow-hidden mb-3 border border-pink-400/30 bg-black/60 shadow-[0_0_25px_rgba(255,133,161,0.25)] flex items-center justify-center">
             <img
               src={data.media}
@@ -73,7 +73,6 @@ export default function ComfortModal({ type, isOpen, onClose }) {
             />
           </div>
 
-          {/* Comforting Message with em dash */}
           <p className="text-xs sm:text-sm text-pink-100/90 leading-relaxed font-light px-2 mb-4">
             "{data.message}"
           </p>
