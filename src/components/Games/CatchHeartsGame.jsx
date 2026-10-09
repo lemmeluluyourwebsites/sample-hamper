@@ -28,7 +28,6 @@ export default function CatchHeartsGame() {
 
   const spawnItem = (width) => {
     const currentScore = scoreRef.current;
-    // Progressively increasing falling speed to make it competitive and tough!
     const speedMultiplier = 1 + Math.min(2.5, currentScore * 0.08);
 
     const types = [
@@ -60,7 +59,6 @@ export default function CatchHeartsGame() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Spawn interval speeds up with score (750ms down to 420ms)
     const currentScore = scoreRef.current;
     const spawnInterval = Math.max(420, 750 - currentScore * 12);
 
@@ -96,7 +94,6 @@ export default function CatchHeartsGame() {
           return next;
         });
 
-        // Trigger float feedback
         setFeedback({
           text: item.points > 0 ? `+${item.points}` : `${item.points}`,
           x: item.x,
@@ -145,7 +142,6 @@ export default function CatchHeartsGame() {
     setScore(0);
   };
 
-  // Speed multiplier indicator
   const currentSpeedMultiplier = (1 + Math.min(2.5, score * 0.08)).toFixed(1);
 
   return (
@@ -165,7 +161,7 @@ export default function CatchHeartsGame() {
 
           {score > 0 && (
             <div className="flex items-center gap-1 text-[11px] text-[#ff85a1] font-semibold bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-400/20">
-              <Zap className="w-3 h-3 text-[#ff85a1]" />
+              <Zap className="w-3.5 h-3.5 text-[#ff85a1]" />
               <span>{currentSpeedMultiplier}x Speed</span>
             </div>
           )}
@@ -188,10 +184,10 @@ export default function CatchHeartsGame() {
         </div>
       </div>
 
-      {/* Game Stage */}
+      {/* Game Stage with touch-action: pan-y to allow scrolling past */}
       <div
         ref={containerRef}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'pan-y' }}
         className="relative w-full h-[380px] sm:h-[430px] rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] bg-gradient-to-b from-black via-[#0d0710] to-black"
       >
         {/* Falling items */}
@@ -221,7 +217,7 @@ export default function CatchHeartsGame() {
           </div>
         )}
 
-        {/* Draggable Basket at bottom (Framer Motion drag="x") */}
+        {/* Draggable Basket at bottom */}
         <motion.div
           drag="x"
           dragConstraints={containerRef}
@@ -235,13 +231,13 @@ export default function CatchHeartsGame() {
               setBasketX(Math.max(10, Math.min(rect.width - 70, relX)));
             }
           }}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing touch-none flex flex-col items-center"
-          style={{ minWidth: '56px', minHeight: '56px' }}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing flex flex-col items-center"
+          style={{ minWidth: '56px', minHeight: '56px', touchAction: 'none' }}
         >
           <div className="w-16 h-12 rounded-2xl bg-gradient-to-tr from-pink-500/40 via-rose-500/30 to-purple-500/20 border-2 border-pink-400/80 shadow-[0_0_20px_rgba(255,133,161,0.6)] flex items-center justify-center text-2xl select-none">
             🧺
           </div>
-          <span className="text-[9px] text-pink-200/70 font-semibold mt-1">Drag Me</span>
+          <span className="text-[9px] text-pink-200/70 font-semibold mt-1">Drag Basket</span>
         </motion.div>
 
         {/* Start Overlay if paused/stopped */}

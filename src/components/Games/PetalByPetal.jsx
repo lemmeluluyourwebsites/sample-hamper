@@ -1,23 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sparkles, Camera, RotateCcw, Heart } from 'lucide-react';
 import { playPetalPluckSound, playBonusChime, playPopSound } from '../../utils/audio';
 
-const TOTAL_PETALS = 16; // Realistic full botanical flower / dandelion bloom
-
 export default function PetalByPetal() {
-  const [petals, setPetals] = useState(() =>
-    Array.from({ length: TOTAL_PETALS }, (_, index) => ({
+  // Generate random total petals between 30 and 35
+  const generateRandomPetals = useCallback(() => {
+    const total = Math.floor(Math.random() * 6) + 30; // 30, 31, 32, 33, 34, or 35
+    return Array.from({ length: total }, (_, index) => ({
       id: index,
-      angle: (index * 360) / TOTAL_PETALS,
+      angle: (index * 360) / total,
       isDetached: false,
       driftX: 0,
       driftY: 0,
-      text: null,
-    }))
-  );
+    }));
+  }, []);
 
+  const [petals, setPetals] = useState(generateRandomPetals);
+  const [firstPhrase, setFirstPhrase] = useState(null); // 'I love him more' or 'He loves me more'
   const [lastPluckedText, setLastPluckedText] = useState(null);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [winnerText, setWinnerText] = useState('');
@@ -31,7 +32,7 @@ export default function PetalByPetal() {
     };
   };
 
-  // TRUE OUTWARD SWIPE DETECTION: Petal ONLY detaches when swiped outward!
+  // TRUE OUTWARD SWIPE: Petal only detaches when swiped outward past threshold
   const handlePointerMove = (index, e) => {
     const start = dragStartPos.current[index];
     if (!start || petals[index].isDetached) return;
@@ -40,8 +41,8 @@ export default function PetalByPetal() {
     const dy = e.clientY - start.y;
     const distance = Math.hypot(dx, dy);
 
-    // Only detaches when dragged/swiped outward past 28px threshold
-    if (distance > 28) {
+    // Only detaches when dragged/swiped outward past 22px
+    if (distance > 22) {
       delete dragStartPos.current[index];
       detachPetal(index, dx, dy);
     }
@@ -56,27 +57,39 @@ export default function PetalByPetal() {
 
     playPetalPluckSound();
 
-    // Randomized text: "I love him more" vs "He loves me more"
-    const randomText = Math.random() < 0.6 ? 'I love him more' : 'He loves me more';
-    setLastPluckedText(randomText);
+    const currentlyDetachedCount = petals.filter((p) => p.isDetached).length;
+    let assignedText = '';
 
-    const remainingCount = petals.filter((p, i) => !p.isDetached && i !== index).length;
+    // First petal randomly sets starting phrase
+    if (currentlyDetachedCount === 0) {
+      const initial = Math.random() < 0.5 ? 'I love him more' : 'He loves me more';
+      setFirstPhrase(initial);
+      assignedText = initial;
+    } else {
+      // Subsequent petals strictly alternate
+      const initial = firstPhrase;
+      const other = initial === 'I love him more' ? 'He loves me more' : 'I love him more';
+      assignedText = currentlyDetachedCount % 2 === 0 ? initial : other;
+    }
+
+    setLastPluckedText(assignedText);
+
+    const remainingCount = petals.length - currentlyDetachedCount - 1;
 
     setPetals((prev) => {
       const next = [...prev];
       next[index] = {
         ...next[index],
         isDetached: true,
-        driftX: swipeDx * 3,
-        driftY: swipeDy * 3,
-        text: randomText,
+        driftX: swipeDx * 2.8,
+        driftY: swipeDy * 2.8,
       };
       return next;
     });
 
-    // When final petal is plucked
+    // When the final petal is detached (remainingCount === 0)
     if (remainingCount === 0) {
-      setWinnerText(randomText);
+      setWinnerText(assignedText);
       playBonusChime();
       confetti({
         particleCount: 110,
@@ -87,22 +100,14 @@ export default function PetalByPetal() {
 
       setTimeout(() => {
         setShowWinnerModal(true);
-      }, 700);
+      }, 750);
     }
   };
 
   const handleResetFlower = () => {
     playPopSound();
-    setPetals(
-      Array.from({ length: TOTAL_PETALS }, (_, index) => ({
-        id: index,
-        angle: (index * 360) / TOTAL_PETALS,
-        isDetached: false,
-        driftX: 0,
-        driftY: 0,
-        text: null,
-      }))
-    );
+    setPetals(generateRandomPetals());
+    setFirstPhrase(null);
     setLastPluckedText(null);
     setShowWinnerModal(false);
     setWinnerText('');
@@ -112,14 +117,16 @@ export default function PetalByPetal() {
 
   return (
     <div className="w-full flex flex-col items-center select-none">
-      {/* Header bar */}
+      {/* Header Bar — DO NOT disclose petal count, keep outcome unpredictable */}
       <div className="w-full flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-1.5 text-xs text-pink-200/80 font-medium">
           <Heart className="w-3.5 h-3.5 text-[#ff85a1] fill-[#ff85a1]" />
           <span>
-            {TOTAL_PETALS - detachedCount} petals left
+            Sunflower Bloom
             {lastPluckedText && (
-              <span className="ml-1.5 text-white font-semibold">({lastPluckedText})</span>
+              <span className="ml-1.5 text-white font-bold text-pink-glow">
+                — {lastPluckedText}
+              </span>
             )}
           </span>
         </div>
@@ -133,24 +140,26 @@ export default function PetalByPetal() {
         </button>
       </div>
 
-      {/* Realistic Flower Arena */}
-      <div className="relative w-full aspect-square max-w-[360px] rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] flex items-center justify-center bg-gradient-to-b from-black via-[#0d0711] to-black">
-        {/* Soft floral halo */}
+      {/* Realistic Flower Arena with touch-action: pan-y outside the petals */}
+      <div
+        style={{ touchAction: 'pan-y' }}
+        className="relative w-full aspect-square max-w-[370px] rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] flex items-center justify-center bg-gradient-to-b from-black via-[#0d0711] to-black"
+      >
+        {/* Soft floral glow */}
         <div className="absolute w-56 h-56 bg-pink-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Center of the Flower: Natural Realistic Botanical Seed Core (NO photo in between) */}
-        <div className="relative z-10 w-24 h-24 rounded-full border-2 border-amber-300/40 shadow-[inset_0_0_15px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.25)] flex items-center justify-center bg-gradient-to-tr from-amber-900 via-amber-700 to-amber-600 overflow-hidden">
-          {/* Concentric spiral botanical seed textures */}
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#fde68a_1px,transparent_1px)] [background-size:6px_6px]" />
-          <div className="w-16 h-16 rounded-full border border-amber-400/30 bg-amber-950/60 flex items-center justify-center shadow-inner">
-            <span className="text-xl select-none">✨</span>
+        {/* Center of the Flower: Natural Botanical Seed Core (NO photo in between) */}
+        <div className="relative z-10 w-22 h-22 rounded-full border-2 border-amber-400/40 shadow-[inset_0_0_15px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.3)] flex items-center justify-center bg-gradient-to-tr from-amber-950 via-amber-800 to-amber-700 overflow-hidden">
+          <div className="absolute inset-0 opacity-45 bg-[radial-gradient(#fde68a_1px,transparent_1px)] [background-size:5px_5px]" />
+          <div className="w-14 h-14 rounded-full border border-amber-400/30 bg-amber-950/70 flex items-center justify-center shadow-inner">
+            <span className="text-lg select-none">🌻</span>
           </div>
         </div>
 
-        {/* 16 Realistic Tapered Petals Layered Around Center */}
+        {/* 30-35 Realistic Botanical Petals Layered Around Center */}
         {petals.map((petal, index) => {
           const rad = (petal.angle * Math.PI) / 180;
-          const distance = 82;
+          const distance = 86;
           const x = Math.cos(rad) * distance;
           const y = Math.sin(rad) * distance;
 
@@ -164,31 +173,29 @@ export default function PetalByPetal() {
                   onPointerLeave={() => handlePointerUp(index)}
                   style={{
                     position: 'absolute',
-                    left: `calc(50% + ${x}px - 14px)`,
+                    left: `calc(50% + ${x}px - 10px)`,
                     top: `calc(50% + ${y}px - 44px)`,
                     transform: `rotate(${petal.angle + 90}deg)`,
                     touchAction: 'none',
                   }}
                   className="z-20 cursor-grab active:cursor-grabbing select-none"
                 >
-                  {/* Realistic tapered botanical petal shape via SVG with delicate vein line */}
-                  <svg width="28" height="88" viewBox="0 0 28 88" className="filter drop-shadow-[0_2px_6px_rgba(255,133,161,0.4)]">
+                  {/* Realistic tapered botanical petal shape via SVG with delicate gradient & center spine */}
+                  <svg width="20" height="88" viewBox="0 0 20 88" className="filter drop-shadow-[0_2px_5px_rgba(255,133,161,0.35)]">
                     <defs>
-                      <linearGradient id={`petalGrad-${index}`} x1="0%" y1="100%" x2="0%" y2="0%">
-                        <stop offset="0%" stopColor="#ffb6c1" stopOpacity="0.9" />
-                        <stop offset="50%" stopColor="#f472b6" stopOpacity="0.95" />
-                        <stop offset="100%" stopColor="#ff85a1" stopOpacity="1" />
+                      <linearGradient id={`petalGrad-${petal.id}`} x1="0%" y1="100%" x2="0%" y2="0%">
+                        <stop offset="0%" stopColor="#ffd1dc" stopOpacity="0.85" />
+                        <stop offset="50%" stopColor="#ff85a1" stopOpacity="0.95" />
+                        <stop offset="100%" stopColor="#f472b6" stopOpacity="1" />
                       </linearGradient>
                     </defs>
-                    {/* Realistic botanical curved teardrop petal */}
                     <path
-                      d="M 14,0 C 26,20 28,60 14,88 C 0,60 2,20 14,0 Z"
-                      fill={`url(#petalGrad-${index})`}
+                      d="M 10,0 C 19,20 20,62 10,88 C 0,62 1,20 10,0 Z"
+                      fill={`url(#petalGrad-${petal.id})`}
                       stroke="rgba(255,255,255,0.7)"
-                      strokeWidth="0.8"
+                      strokeWidth="0.75"
                     />
-                    {/* Delicate center vein */}
-                    <line x1="14" y1="15" x2="14" y2="75" stroke="rgba(255,255,255,0.45)" strokeWidth="0.75" />
+                    <line x1="10" y1="12" x2="10" y2="76" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7" />
                   </svg>
                 </div>
               ) : (
@@ -204,19 +211,19 @@ export default function PetalByPetal() {
                   }}
                   animate={{
                     x: x + petal.driftX,
-                    y: y + petal.driftY + 120,
-                    scale: 0.5,
+                    y: y + petal.driftY + 110,
+                    scale: 0.45,
                     opacity: 0,
-                    rotate: petal.angle + 90 + 160,
+                    rotate: petal.angle + 90 + 150,
                   }}
-                  transition={{ duration: 1.4, ease: 'easeOut' }}
+                  transition={{ duration: 1.3, ease: 'easeOut' }}
                   className="absolute z-10 pointer-events-none"
                 >
-                  <svg width="24" height="74" viewBox="0 0 28 88">
+                  <svg width="18" height="78" viewBox="0 0 20 88">
                     <path
-                      d="M 14,0 C 26,20 28,60 14,88 C 0,60 2,20 14,0 Z"
+                      d="M 10,0 C 19,20 20,62 10,88 C 0,62 1,20 10,0 Z"
                       fill="#f472b6"
-                      opacity="0.8"
+                      opacity="0.75"
                     />
                   </svg>
                 </motion.div>
@@ -227,7 +234,7 @@ export default function PetalByPetal() {
       </div>
 
       <p className="text-xs text-pink-300/50 mt-3 text-center">
-        Swipe each petal outward to blow it into the breeze — find out who loves who more 💕
+        Swipe petals outward into the breeze — alternating turns until the final secret petal determines the winner 💕
       </p>
 
       {/* Finishing Victory Moment: Dedicated Couple Keepsake & Mandatory Boyfriend Screenshot Modal */}

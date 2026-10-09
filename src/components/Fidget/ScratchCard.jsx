@@ -27,20 +27,23 @@ export default function ScratchCard() {
 
   const isDrawingRef = useRef(false);
   const lastCheckRef = useRef(0);
+  const lastPointRef = useRef(null);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const rect = container.getBoundingClientRect();
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
     if (width === 0 || height === 0) return;
 
+    // Synchronize canvas internal buffer exactly to DOM rendered pixels
     canvas.width = width;
     canvas.height = height;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.globalCompositeOperation = 'source-over';
 
     // Cute baby pink shimmering foil gradient
@@ -52,7 +55,7 @@ export default function ScratchCard() {
     ctx.fillRect(0, 0, width, height);
 
     // Decorative metallic sparkles
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
     for (let i = 0; i < 35; i++) {
       ctx.beginPath();
       ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 2.5 + 1, 0, Math.PI * 2);
@@ -67,11 +70,12 @@ export default function ScratchCard() {
     ctx.fillText('✨ Scratch Here ✨', width / 2, height / 2 - 10);
 
     ctx.font = '12px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.fillText('Rub to reveal your mystery photo', width / 2, height / 2 + 14);
 
     setIsCleared(false);
     setClearedPercent(0);
+    lastPointRef.current = null;
   }, []);
 
   // When image loads, adapt container aspect ratio to match photo natural dimensions
@@ -82,39 +86,44 @@ export default function ScratchCard() {
     }
   };
 
+  // Re-init canvas whenever photo or aspect ratio changes, or on resize
   useEffect(() => {
-    // Delay slightly to allow layout reflow with new aspect ratio
     const timer = setTimeout(() => {
       initCanvas();
-    }, 50);
+    }, 60);
 
-    const handleResize = () => initCanvas();
-    window.addEventListener('resize', handleResize);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const ro = new ResizeObserver(() => {
+      initCanvas();
+    });
+    ro.observe(container);
+
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('resize', handleResize);
+      ro.disconnect();
     };
   }, [photoIndex, aspectRatio, initCanvas]);
 
   // Accurate clearance percentage calculation
   const checkClearedPercentage = () => {
     const now = Date.now();
-    if (now - lastCheckRef.current < 150) return;
+    if (now - lastCheckRef.current < 160) return;
     lastCheckRef.current = now;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imgData.data;
 
     let clearedSamples = 0;
     let totalSamples = 0;
-    const step = 8; // high-resolution sampling grid
+    const step = 8;
 
     for (let i = 3; i < pixels.length; i += 4 * step) {
       totalSamples++;
-      // If alpha is below 128 (50% transparent), consider pixel cleared
       if (pixels[i] < 128) {
         clearedSamples++;
       }
@@ -123,7 +132,7 @@ export default function ScratchCard() {
     const percent = Math.min(100, Math.round((clearedSamples / totalSamples) * 100));
     setClearedPercent(percent);
 
-    // At 90% mark, snap canvas opacity to 0 and trigger confetti
+    // At 90% mark, snap canvas opacity to 0 and trigger celebratory confetti
     if (percent >= 90 && !isCleared) {
       setIsCleared(true);
       setClearedPercent(100);
@@ -137,35 +146,57 @@ export default function ScratchCard() {
     }
   };
 
-  const scratch = (clientX, clientY) => {
+  // Pixel-perfect scratch mapping directly to finger
+  const scratchTo = (clientX, clientY) => {
     if (isCleared) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    if (rect.width === 0 || rect.height === 0) return;
 
-    const ctx = canvas.getContext('2d');
+    // Strict 1:1 scale mapping from viewport coordinates to canvas buffer
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const currentX = (clientX - rect.left) * scaleX;
+    const currentY = (clientY - rect.top) * scaleY;
+    const brushRadius = 24 * scaleX;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, 32, 0, Math.PI * 2);
-    ctx.fill();
 
+    // Draw smooth continuous stroke connecting previous point to current point
+    ctx.beginPath();
+    if (lastPointRef.current) {
+      ctx.lineWidth = brushRadius * 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
+      ctx.lineTo(currentX, currentY);
+      ctx.stroke();
+    } else {
+      ctx.arc(currentX, currentY, brushRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    lastPointRef.current = { x: currentX, y: currentY };
     checkClearedPercentage();
   };
 
   const handlePointerDown = (e) => {
     isDrawingRef.current = true;
-    scratch(e.clientX, e.clientY);
+    lastPointRef.current = null;
+    scratchTo(e.clientX, e.clientY);
   };
 
   const handlePointerMove = (e) => {
     if (!isDrawingRef.current && e.buttons !== 1) return;
-    scratch(e.clientX, e.clientY);
+    scratchTo(e.clientX, e.clientY);
   };
 
   const handlePointerUp = () => {
     isDrawingRef.current = false;
+    lastPointRef.current = null;
   };
 
   // Pick random next photo
@@ -217,8 +248,8 @@ export default function ScratchCard() {
         ref={containerRef}
         style={{
           aspectRatio: `${aspectRatio}`,
-          maxWidth: '360px',
-          maxHeight: '480px',
+          maxWidth: '350px',
+          maxHeight: '460px',
         }}
         className="relative w-full rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] select-none transition-all duration-300"
       >
@@ -234,7 +265,7 @@ export default function ScratchCard() {
           }}
         />
 
-        {/* Scratchable Canvas */}
+        {/* Scratchable Canvas with 1:1 finger synchronization */}
         <canvas
           ref={canvasRef}
           onPointerDown={handlePointerDown}
@@ -252,7 +283,7 @@ export default function ScratchCard() {
 
         {/* Revealed badge overlay */}
         {isCleared && (
-          <div className="absolute bottom-3 inset-x-3 py-2 px-3 rounded-2xl bg-black/60 backdrop-blur-md border border-pink-400/40 text-center animate-fade-in pointer-events-none">
+          <div className="absolute bottom-3 inset-x-3 py-2 px-3 rounded-2xl bg-black/70 backdrop-blur-md border border-pink-400/40 text-center animate-fade-in pointer-events-none">
             <p className="text-xs font-semibold text-white flex items-center justify-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-[#ff85a1]" />
               <span>Revealed with Love! 100% Cleared 💖</span>

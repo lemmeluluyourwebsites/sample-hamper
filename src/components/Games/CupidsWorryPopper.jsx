@@ -31,17 +31,16 @@ export default function CupidsWorryPopper() {
   const [aim, setAim] = useState({ isAiming: false, currX: 0, currY: 0 });
   const animFrameRef = useRef(null);
   const worriesRef = useRef(INITIAL_WORRIES);
+  const touchStartPos = useRef(null);
 
   worriesRef.current = worries;
 
-  // Worries gentle floating motion
   useEffect(() => {
     let last = performance.now();
     const loop = (t) => {
       const dt = Math.min(0.04, (t - last) / 1000);
       last = t;
 
-      // Update worry bubble horizontal drift
       setWorries((prev) =>
         prev.map((w) => {
           let nx = w.x + (w.vx * dt);
@@ -57,7 +56,6 @@ export default function CupidsWorryPopper() {
         })
       );
 
-      // Update flying arrows physics & collisions
       setArrows((currentArrows) => {
         if (currentArrows.length === 0) return currentArrows;
         const container = containerRef.current;
@@ -71,7 +69,6 @@ export default function CupidsWorryPopper() {
           const nextX = arr.x + arr.vx * dt;
           const nextY = arr.y + arr.vy * dt;
 
-          // Check if arrow left screen bounds
           if (nextY < -30 || nextX < -30 || nextX > width + 30 || nextY > height + 30) {
             return;
           }
@@ -79,11 +76,10 @@ export default function CupidsWorryPopper() {
           let hitBubble = null;
           const currentWorries = worriesRef.current;
 
-          // Accurate collision calculation based on exact rendered element coordinates
           for (let i = 0; i < currentWorries.length; i++) {
             const w = currentWorries[i];
-            const pxX = (w.x / 100) * width + 48; // bubble center X
-            const pxY = w.y + 18;                 // bubble center Y
+            const pxX = (w.x / 100) * width + 48;
+            const pxY = w.y + 18;
 
             const dist = Math.hypot(nextX - pxX, nextY - pxY);
             if (dist < 46) {
@@ -93,7 +89,6 @@ export default function CupidsWorryPopper() {
           }
 
           if (hitBubble) {
-            // Popped!
             playWorryPopSound();
             confetti({
               particleCount: 55,
@@ -109,7 +104,6 @@ export default function CupidsWorryPopper() {
             setActiveMessage({ text: msg, x: hitBubble.pxX, y: hitBubble.pxY });
             setTimeout(() => setActiveMessage(null), 1800);
 
-            // Remove popped worry
             setWorries((prev) => prev.filter((item) => item.id !== hitBubble.id));
           } else {
             active.push({ ...arr, x: nextX, y: nextY });
@@ -128,7 +122,6 @@ export default function CupidsWorryPopper() {
     };
   }, []);
 
-  // Fire arrow towards target coordinate
   const shootTowards = (targetX, targetY) => {
     const container = containerRef.current;
     if (!container) return;
@@ -165,14 +158,12 @@ export default function CupidsWorryPopper() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // If user tapped directly in the upper half of screen (near worries), shoot directly at that spot!
-    if (y < container.clientHeight - 90) {
-      shootTowards(x, y);
-      return;
-    }
+    touchStartPos.current = { x: e.clientX, y: e.clientY };
 
-    // Otherwise, start dragging bow to aim
-    setAim({ isAiming: true, currX: x, currY: y });
+    // Near bottom bow zone: aim and drag
+    if (y >= container.clientHeight - 85) {
+      setAim({ isAiming: true, currX: x, currY: y });
+    }
   };
 
   const handlePointerMove = (e) => {
@@ -183,21 +174,35 @@ export default function CupidsWorryPopper() {
     setAim({ isAiming: true, currX: e.clientX - rect.left, currY: e.clientY - rect.top });
   };
 
-  const handlePointerUp = () => {
-    if (!aim.isAiming) return;
-    const container = containerRef.current;
-    if (container) {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+  const handlePointerUp = (e) => {
+    const start = touchStartPos.current;
+    touchStartPos.current = null;
+
+    if (aim.isAiming && containerRef.current) {
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
       const bowX = width / 2;
       const bowY = height - 55;
 
-      // Invert pull vector to shoot forward
       const targetX = bowX - (aim.currX - bowX) * 1.5;
       const targetY = bowY - Math.max(50, (aim.currY - bowY) * 1.5);
       shootTowards(targetX, targetY);
+      setAim({ isAiming: false, currX: 0, currY: 0 });
+      return;
     }
-    setAim({ isAiming: false, currX: 0, currY: 0 });
+
+    // Direct tap to shoot: only if pointer didn't drag/scroll
+    if (start && containerRef.current) {
+      const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+      if (dist < 8) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        if (y < rect.height - 80) {
+          shootTowards(x, y);
+        }
+      }
+    }
   };
 
   const handleResetWorries = () => {
@@ -224,13 +229,13 @@ export default function CupidsWorryPopper() {
         </button>
       </div>
 
-      {/* Game Canvas / Arena */}
+      {/* Game Canvas / Arena with touch-action: pan-y to allow scrolling past */}
       <div
         ref={containerRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'pan-y' }}
         className="relative w-full h-[400px] sm:h-[450px] rounded-3xl overflow-hidden glass-card border border-pink-400/30 shadow-[0_4px_30px_rgba(255,133,161,0.25)] bg-gradient-to-b from-black via-[#0d0912] to-black cursor-crosshair"
       >
         {/* Floating Gray "Worry" Bubbles with direct tap support */}

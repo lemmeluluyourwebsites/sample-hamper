@@ -1,10 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Waves, CircleDot, Image as ImageIcon, Box, Music } from 'lucide-react';
+import { Waves, CircleDot, Image as ImageIcon, Music } from 'lucide-react';
 import FluidCanvas from './FluidCanvas';
 import BubbleWrap from './BubbleWrap';
 import ScratchCard from './ScratchCard';
-import DigitalSand from './DigitalSand';
 import OctaveGrid from './OctaveGrid';
 
 export default function FidgetSection() {
@@ -76,26 +75,7 @@ export default function FidgetSection() {
           <ScratchCard />
         </motion.div>
 
-        {/* 4. Digital Sand */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          className="space-y-2"
-        >
-          <div className="flex items-center gap-2 px-1">
-            <div className="w-7 h-7 rounded-lg bg-pink-500/20 border border-pink-400/30 flex items-center justify-center text-[#ff85a1]">
-              <Box className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">Digital Dune Sand</h3>
-              <p className="text-[11px] text-pink-200/60">Natural granular dune physics shifting with gravity and phone tilt</p>
-            </div>
-          </div>
-          <DigitalSand />
-        </motion.div>
-
-        {/* 5. Octave Grid / Harp */}
+        {/* 4. Octave Grid / Harp (All 3 octaves stacked) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

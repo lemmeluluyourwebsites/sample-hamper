@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Waves, Sparkles } from 'lucide-react';
+import { Waves } from 'lucide-react';
 
 export default function FluidCanvas() {
   const canvasRef = useRef(null);
@@ -40,9 +40,9 @@ export default function FluidCanvas() {
 
         // Lifetime 0.5s
         if (r.age < 0.5) {
-          const progress = r.age / 0.5; // 0 to 1
-          const radius = r.initialRadius + progress * 75; // Expanding
-          const opacity = Math.max(0, (1 - progress) * 0.85); // Rapidly fading
+          const progress = r.age / 0.5;
+          const radius = r.initialRadius + progress * 75;
+          const opacity = Math.max(0, (1 - progress) * 0.85);
 
           ctx.save();
           ctx.beginPath();
@@ -88,7 +88,6 @@ export default function FluidCanvas() {
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Add ripple
     ripplesRef.current.push({
       x,
       y,
@@ -106,7 +105,7 @@ export default function FluidCanvas() {
   };
 
   return (
-    <div className="relative w-full h-[380px] sm:h-[440px] rounded-3xl overflow-hidden glass-card border border-pink-400/25 flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
+    <div className="relative w-full h-[360px] sm:h-[420px] rounded-3xl overflow-hidden glass-card border border-pink-400/25 flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
       {/* Instructions header */}
       <div className="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2">
@@ -118,12 +117,12 @@ export default function FluidCanvas() {
         </span>
       </div>
 
-      {/* Ripple canvas with touch-action: none */}
+      {/* Ripple canvas with touch-action: pan-y to allow smooth page scroll */}
       <canvas
         ref={canvasRef}
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'pan-y' }}
         className="w-full h-full cursor-crosshair bg-gradient-to-b from-black via-[#0d0910] to-black"
       />
 
