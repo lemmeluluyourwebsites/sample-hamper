@@ -8,7 +8,7 @@ import PetalByPetal from './PetalByPetal';
 export default function GamesSection() {
   return (
     <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-48 flex flex-col items-center">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-[34px]">
         {/* Section Title Header */}
         <div className="text-center pt-2 pb-1">
           <h2 className="text-2xl font-bold text-white tracking-tight">Cozy Mini Games</h2>

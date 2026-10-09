@@ -29,7 +29,7 @@ export default function FirstAidSection() {
 
   return (
     <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-48 flex flex-col items-center">
-      <div className="w-full max-w-md space-y-4">
+      <div className="w-full max-w-md space-y-[18px]">
         {/* Header Greeting */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
