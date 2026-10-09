@@ -10,31 +10,38 @@ const NATURAL_SAND_PALETTE = [
   '#cbb994', // Desert Sand
   '#bca678', // Warm Dune
   '#ad9568', // Deep Grain
+  '#9e8658', // Earthy Grain
 ];
 
 export default function DigitalSand() {
   const canvasRef = useRef(null);
   const animFrameRef = useRef(null);
   const particlesRef = useRef([]);
-  const tiltRef = useRef({ gx: 0, gy: 0.5 });
+  const tiltRef = useRef({ gx: 0, gy: 1 });
   const [gyroActive, setGyroActive] = useState(false);
   const [particleCount, setParticleCount] = useState(0);
 
-  // Initialize sand particles
+  // Initialize sand filled at least 1/4th of the container at the bottom
   const initSand = (width, height) => {
-    const count = 550;
+    const bottomQuarterY = height * 0.75;
+    const count = 1600; // dense realistic granular volume
     const particles = [];
+
     for (let i = 0; i < count; i++) {
+      const x = Math.random() * (width - 8) + 4;
+      // Distributed across the bottom 25% of the container
+      const y = bottomQuarterY + Math.random() * (height * 0.25 - 4);
+
       particles.push({
-        x: Math.random() * width,
-        y: Math.random() * (height * 0.8),
-        vx: 0,
-        vy: Math.random() * 2 + 1,
-        radius: Math.random() * 2.2 + 1.6,
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 5,
+        vy: Math.random() * 5,
+        radius: Math.random() * 1.4 + 1.1, // fine granular grains
         color: NATURAL_SAND_PALETTE[Math.floor(Math.random() * NATURAL_SAND_PALETTE.length)],
-        settled: false,
       });
     }
+
     particlesRef.current = particles;
     setParticleCount(count);
   };
@@ -60,22 +67,22 @@ export default function DigitalSand() {
     const handleOrientation = (event) => {
       if (event.gamma !== null && event.beta !== null) {
         setGyroActive(true);
-        // gamma is left-to-right (-90 to 90)
-        // beta is front-to-back (-180 to 180)
-        const gx = Math.max(-1, Math.min(1, event.gamma / 45));
-        const gy = Math.max(-1, Math.min(1, (event.beta - 30) / 45));
-        tiltRef.current = { gx, gy: Math.max(0.2, gy) };
+        // gamma is left/right tilt [-90, 90]
+        // beta is front/back tilt [-180, 180]
+        const gx = Math.max(-1.5, Math.min(1.5, event.gamma / 35));
+        const gy = Math.max(0.1, Math.min(1.5, (event.beta - 25) / 35));
+        tiltRef.current = { gx, gy };
       }
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
 
-    // Sand Simulation Loop
+    // Realistic granular physics loop
     const ctx = canvas.getContext('2d');
     let lastTime = performance.now();
 
     const updatePhysics = (time) => {
-      const dt = Math.min(0.04, (time - lastTime) / 1000);
+      const dt = Math.min(0.033, (time - lastTime) / 1000);
       lastTime = time;
 
       ctx.clearRect(0, 0, width, height);
@@ -83,43 +90,42 @@ export default function DigitalSand() {
       const particles = particlesRef.current;
       const { gx, gy } = tiltRef.current;
 
-      // Gravity strength
-      const gravityX = gx * 240;
-      const gravityY = Math.max(80, gy * 320);
+      const gravityX = gx * 550;
+      const gravityY = gy * 650;
 
-      // Render and update each sand grain
+      // Physics update with granular pile slumping & friction
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
-        // Apply forces
         p.vx += gravityX * dt;
         p.vy += gravityY * dt;
 
-        // Air drag
-        p.vx *= 0.94;
-        p.vy *= 0.94;
+        // Granular friction & damping
+        p.vx *= 0.92;
+        p.vy *= 0.92;
 
-        // Position update
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // Floor collision
-        if (p.y > height - p.radius) {
-          p.y = height - p.radius;
-          p.vy *= -0.25;
-          p.vx += (Math.random() - 0.5) * 15 * gx; // natural pile slumping
+        // Bottom floor collision with natural dune spreading
+        if (p.y > height - p.radius - 1) {
+          p.y = height - p.radius - 1;
+          p.vy = 0;
+          p.vx += (Math.random() - 0.5) * 8 * (gx !== 0 ? Math.sign(gx) : 1);
         }
 
-        // Left / Right wall bounce & bounds
-        if (p.x < p.radius) {
-          p.x = p.radius;
-          p.vx *= -0.25;
-        } else if (p.x > width - p.radius) {
-          p.x = width - p.radius;
-          p.vx *= -0.25;
+        // Left boundary
+        if (p.x < p.radius + 1) {
+          p.x = p.radius + 1;
+          p.vx *= -0.15;
+        }
+        // Right boundary
+        else if (p.x > width - p.radius - 1) {
+          p.x = width - p.radius - 1;
+          p.vx *= -0.15;
         }
 
-        // Draw natural sand grain
+        // Draw individual realistic sand grain
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
@@ -138,39 +144,37 @@ export default function DigitalSand() {
     };
   }, []);
 
-  // Pointer drag to tilt sand simulation (great for desktop or manual tilting)
+  // Pointer drag to shift sand or stir grains
   const handlePointerMove = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
     const ny = (e.clientY - rect.top) / rect.height - 0.5;
+
     tiltRef.current = {
-      gx: nx * 1.8,
-      gy: Math.max(0.3, (ny + 0.5) * 1.5),
+      gx: nx * 2.2,
+      gy: Math.max(0.2, (ny + 0.6) * 1.6),
     };
   };
 
   const handlePointerDown = (e) => {
-    // Add fresh grains of sand at touch location
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    for (let k = 0; k < 12; k++) {
-      particlesRef.current.push({
-        x: x + (Math.random() - 0.5) * 20,
-        y: y + (Math.random() - 0.5) * 20,
-        vx: (Math.random() - 0.5) * 40,
-        vy: Math.random() * 50 + 20,
-        radius: Math.random() * 2.2 + 1.6,
-        color: NATURAL_SAND_PALETTE[Math.floor(Math.random() * NATURAL_SAND_PALETTE.length)],
-        settled: false,
-      });
+    // Stir or add sand splash at touch coordinates
+    const particles = particlesRef.current;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      const dist = Math.hypot(p.x - x, p.y - y);
+      if (dist < 45) {
+        p.vx += (p.x - x) * 5;
+        p.vy -= 120 + Math.random() * 80;
+      }
     }
-    setParticleCount(particlesRef.current.length);
   };
 
   const handleReset = () => {
@@ -195,12 +199,12 @@ export default function DigitalSand() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Header bar */}
+      {/* Header bar with em dash */}
       <div className="w-full flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-1.5 text-xs text-pink-200/80 font-medium">
           <Compass className="w-3.5 h-3.5 text-amber-300" />
           <span>
-            {gyroActive ? 'Gyroscope Active' : 'Tilt phone or drag finger'} ({particleCount} grains)
+            {gyroActive ? 'Gyroscope Active' : 'Tilt phone or swipe screen'} ({particleCount} grains)
           </span>
         </div>
 
@@ -225,8 +229,8 @@ export default function DigitalSand() {
         </div>
       </div>
 
-      {/* Sand Canvas with strict natural sand aesthetic */}
-      <div className="relative w-full h-[380px] sm:h-[440px] rounded-3xl overflow-hidden glass-card border border-neutral-700/50 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
+      {/* Realistic granular sand container with bottom quarter filled at start */}
+      <div className="relative w-full h-[380px] sm:h-[430px] rounded-3xl overflow-hidden glass-card border border-neutral-700/60 shadow-[0_4px_30px_rgba(0,0,0,0.85)]">
         <canvas
           ref={canvasRef}
           onPointerMove={handlePointerMove}
@@ -236,8 +240,8 @@ export default function DigitalSand() {
         />
 
         <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
-          <p className="text-[11px] text-amber-200/50">
-            Tilt phone or swipe screen • Natural granular dune simulation
+          <p className="text-[11px] text-amber-200/60">
+            Bottom 1/4 filled with natural dune sand — shifts with gravity and phone tilt
           </p>
         </div>
       </div>

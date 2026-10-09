@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Play, Pause, RotateCcw, Heart } from 'lucide-react';
+import { Trophy, Play, Pause, RotateCcw, Heart, Zap } from 'lucide-react';
 import { playHeartChime, playBonusChime, playPenaltySound, playPopSound } from '../../utils/audio';
 
 export default function CatchHeartsGame() {
@@ -21,19 +21,23 @@ export default function CatchHeartsGame() {
   const animFrameRef = useRef(null);
   const lastSpawnRef = useRef(0);
   const basketXRef = useRef(150);
+  const scoreRef = useRef(0);
 
-  // Keep ref synchronized with state
   basketXRef.current = basketX;
+  scoreRef.current = score;
 
   const spawnItem = (width) => {
+    const currentScore = scoreRef.current;
+    // Progressively increasing falling speed to make it competitive and tough!
+    const speedMultiplier = 1 + Math.min(2.5, currentScore * 0.08);
+
     const types = [
-      { type: 'heart', emoji: '❤️', points: 1, sound: playHeartChime, speed: 2.2 },
-      { type: 'heart', emoji: '💖', points: 1, sound: playHeartChime, speed: 2.4 },
-      { type: 'kiss', emoji: '💋', points: 2, sound: playBonusChime, speed: 2.8 },
-      { type: 'cloud', emoji: '🌧️', points: -1, sound: playPenaltySound, speed: 1.8 },
+      { type: 'heart', emoji: '❤️', points: 1, sound: playHeartChime, baseSpeed: 2.4 },
+      { type: 'heart', emoji: '💖', points: 1, sound: playHeartChime, baseSpeed: 2.6 },
+      { type: 'kiss', emoji: '💋', points: 2, sound: playBonusChime, baseSpeed: 3.0 },
+      { type: 'cloud', emoji: '🌧️', points: -1, sound: playPenaltySound, baseSpeed: 2.0 },
     ];
 
-    // 45% heart, 25% kiss, 30% cloud
     const rand = Math.random();
     let selected;
     if (rand < 0.45) selected = types[0];
@@ -44,7 +48,7 @@ export default function CatchHeartsGame() {
       id: Math.random(),
       x: Math.random() * (width - 40) + 10,
       y: -30,
-      speed: selected.speed + Math.random() * 0.8,
+      speed: (selected.baseSpeed + Math.random() * 0.8) * speedMultiplier,
       ...selected,
     };
   };
@@ -56,8 +60,11 @@ export default function CatchHeartsGame() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Spawn every 700ms
-    if (time - lastSpawnRef.current > 700) {
+    // Spawn interval speeds up with score (750ms down to 420ms)
+    const currentScore = scoreRef.current;
+    const spawnInterval = Math.max(420, 750 - currentScore * 12);
+
+    if (time - lastSpawnRef.current > spawnInterval) {
       lastSpawnRef.current = time;
       itemsRef.current.push(spawnItem(width));
     }
@@ -97,7 +104,6 @@ export default function CatchHeartsGame() {
         });
         setTimeout(() => setFeedback(null), 600);
       } else if (item.y < height + 40) {
-        // Still on screen
         remainingItems.push(item);
       }
     });
@@ -139,11 +145,14 @@ export default function CatchHeartsGame() {
     setScore(0);
   };
 
+  // Speed multiplier indicator
+  const currentSpeedMultiplier = (1 + Math.min(2.5, score * 0.08)).toFixed(1);
+
   return (
     <div className="w-full flex flex-col items-center select-none">
-      {/* Top score & controls */}
+      {/* Top score & speed info */}
       <div className="w-full flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-xs font-bold text-white">
             <Heart className="w-3.5 h-3.5 fill-[#ff85a1] text-[#ff85a1]" />
             <span>Score: {score}</span>
@@ -153,6 +162,13 @@ export default function CatchHeartsGame() {
             <Trophy className="w-3.5 h-3.5 text-amber-300" />
             <span>Best: {highScore}</span>
           </div>
+
+          {score > 0 && (
+            <div className="flex items-center gap-1 text-[11px] text-[#ff85a1] font-semibold bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-400/20">
+              <Zap className="w-3 h-3 text-[#ff85a1]" />
+              <span>{currentSpeedMultiplier}x Speed</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -234,7 +250,7 @@ export default function CatchHeartsGame() {
             <span className="text-4xl mb-2">🧺</span>
             <h3 className="text-xl font-bold text-white mb-1">Catch the Hearts</h3>
             <p className="text-xs text-pink-200/80 max-w-xs mb-4">
-              Drag the basket left and right! Catch Hearts (+1) and Kisses (+2), avoid Rainclouds (-1).
+              Drag basket left and right — catch Hearts (+1) & Kisses (+2), avoid Rainclouds (-1). Speed ramps up as you score!
             </p>
             <button
               onClick={handleStart}
@@ -247,7 +263,7 @@ export default function CatchHeartsGame() {
       </div>
 
       <p className="text-xs text-pink-300/50 mt-3 text-center">
-        Catch as many hugs and kisses as your basket can hold!
+        Speed gradually ramps up with every point — test your reflexes and hold on tight!
       </p>
     </div>
   );

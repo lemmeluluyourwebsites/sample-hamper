@@ -9,21 +9,21 @@ const COMFORT_DATA = {
     media: '/assets/hug.gif',
     badge: 'Warmest Embrace',
     message:
-      "Wrap both arms tightly around yourself and squeeze. Close your eyes. Imagine my chin resting on your head, holding you safe from the entire world. Everything will be okay, my sweet girl. I'm right here with you.",
+      "Wrap both arms tightly around yourself and squeeze. Close your eyes. Imagine my chin resting on your head, holding you safe from the entire world. Everything will be okay, my sweet girl—I'm right here with you.",
   },
   kiss: {
     title: 'Sweet Gentle Kisses 💋',
     media: '/assets/kiss.gif',
     badge: 'Infinite Affection',
     message:
-      "One little kiss on your forehead, soft kisses across your eyelashes, and the sweetest kiss on your lips. You are so precious, so deeply adored, and the most beautiful thing in my life.",
+      "One little kiss on your forehead, soft kisses across your eyelashes, and the sweetest kiss on your lips. You are so precious, so deeply adored—the sweetest part of my entire universe.",
   },
   both: {
     title: 'The Full Comfort Treatment 💖',
     media: '/assets/both.gif',
     badge: 'Hug + Endless Kisses',
     message:
-      "Holding you as close as possible while raining soft kisses on you until you smile. Rest your head on my chest, listen to my heartbeat, and let all the stress melt away. You are never doing life alone.",
+      "Holding you as close as possible while raining soft kisses on you until you smile. Rest your head on my chest, listen to my heartbeat, and let all the stress melt away. You are never doing life alone—I love you so much.",
   },
 };
 
@@ -34,13 +34,13 @@ export default function ComfortModal({ type, isOpen, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.88, y: 25 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.88, y: 25 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-sm glass-panel rounded-3xl p-6 border border-pink-400/35 shadow-[0_0_40px_rgba(255,133,161,0.35)] overflow-hidden text-center"
+          className="relative w-full max-w-sm glass-panel rounded-3xl p-5 border border-pink-400/35 shadow-[0_0_40px_rgba(255,133,161,0.35)] overflow-hidden text-center flex flex-col items-center"
         >
           {/* Close button */}
           <button
@@ -48,34 +48,33 @@ export default function ComfortModal({ type, isOpen, onClose }) {
               playPopSound();
               onClose();
             }}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full text-pink-300/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="absolute top-4 right-4 z-20 p-2 rounded-full text-pink-300/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-xs font-semibold text-[#ff85a1] mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/30 text-xs font-semibold text-[#ff85a1] mb-2">
             <Heart className="w-3.5 h-3.5 fill-[#ff85a1]" />
             <span>{data.badge}</span>
           </div>
 
-          <h2 className="text-xl font-bold text-white mb-3">{data.title}</h2>
+          <h2 className="text-xl font-bold text-white mb-2">{data.title}</h2>
 
-          {/* GIF / Illustration Image with glowing frame */}
-          <div className="relative w-full aspect-square max-h-[220px] rounded-2xl overflow-hidden mb-4 border border-pink-400/25 bg-black/40 shadow-[0_0_20px_rgba(255,133,161,0.2)] flex items-center justify-center">
+          {/* Vertical GIF container (aspect ratio 9:16 / tall vertical) so faces are not cut */}
+          <div className="relative w-full max-w-[260px] h-[330px] max-h-[46vh] rounded-2xl overflow-hidden mb-3 border border-pink-400/30 bg-black/60 shadow-[0_0_25px_rgba(255,133,161,0.25)] flex items-center justify-center">
             <img
               src={data.media}
               alt={data.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               onError={(e) => {
-                // Fallback cute placeholder if image load fails
                 e.target.style.display = 'none';
               }}
             />
           </div>
 
-          {/* Comforting Message */}
-          <p className="text-sm text-pink-100/90 leading-relaxed font-light px-2 mb-5">
+          {/* Comforting Message with em dash */}
+          <p className="text-xs sm:text-sm text-pink-100/90 leading-relaxed font-light px-2 mb-4">
             "{data.message}"
           </p>
 

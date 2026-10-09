@@ -1,10 +1,10 @@
 import React from 'react';
-import { Volume2, VolumeX, Lock, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playPopSound } from '../utils/audio';
 
 export default function Header() {
-  const { isMusicPlaying, toggleMusic, lock } = useAuth();
+  const { isMusicPlaying, toggleMusic, lock, user } = useAuth();
 
   const handleAudioToggle = () => {
     playPopSound();
@@ -16,17 +16,25 @@ export default function Header() {
     lock();
   };
 
+  const displayName = user?.name || user?.username || 'Sweetheart';
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 px-4 pt-3 pb-2 flex items-center justify-between backdrop-blur-md bg-black/40 border-b border-pink-400/10">
-      <div className="flex items-center gap-2">
-        <span className="text-xl">🌸</span>
-        <div>
-          <h1 className="text-sm font-semibold tracking-wide text-white flex items-center gap-1.5">
-            Cozy Hamper
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-[#ff85a1] border border-pink-500/30 font-medium">
+    <header className="fixed top-0 left-0 right-0 z-40 px-4 pt-2.5 pb-2 flex items-center justify-between backdrop-blur-md bg-black/50 border-b border-pink-400/15">
+      <div className="flex items-center gap-2.5">
+        <span className="text-2xl animate-pulse">🌸</span>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-sm font-bold tracking-wide text-white leading-tight">
+              Cozy Hamper
+            </h1>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-pink-500/20 text-[#ff85a1] border border-pink-500/30 font-medium">
               Safe Space
             </span>
-          </h1>
+          </div>
+          {/* Below Cozy Hamper: Hello {username} */}
+          <span className="text-[11px] font-medium text-[#ffd1dc] text-pink-glow tracking-tight">
+            Hello, {displayName} 💕
+          </span>
         </div>
       </div>
 

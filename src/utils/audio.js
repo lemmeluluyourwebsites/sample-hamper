@@ -44,22 +44,49 @@ export function playPopSound() {
   }
 }
 
-// Pentatonic Scale frequencies (C, D, E, G, A) across octaves 3, 4, 5, 6
-export const PENTATONIC_FREQUENCIES = [
-  // Octave 3
-  130.81, 146.83, 164.81, 196.00, 220.00,
-  // Octave 4
-  261.63, 293.66, 329.63, 392.00, 440.00,
-  // Octave 5
-  523.25, 587.33, 659.25, 783.99, 880.00,
-  // Octave 6
-  1046.50, 1174.66, 1318.51, 1567.98, 1760.00,
-  // Octave 7
-  2093.00, 2349.32, 2637.02, 3135.96, 3520.00
+// Full 3-Octave Diatonic Major Scale (Do, Re, Mi, Fa, Sol, La, Ti)
+export const DIATONIC_OCTAVES = [
+  {
+    name: 'Octave 3 (Warm & Low)',
+    notes: [
+      { solfege: 'Do', note: 'C3', freq: 130.81 },
+      { solfege: 'Re', note: 'D3', freq: 146.83 },
+      { solfege: 'Mi', note: 'E3', freq: 164.81 },
+      { solfege: 'Fa', note: 'F3', freq: 174.61 },
+      { solfege: 'Sol', note: 'G3', freq: 196.00 },
+      { solfege: 'La', note: 'A3', freq: 220.00 },
+      { solfege: 'Ti', note: 'B3', freq: 246.94 },
+    ],
+  },
+  {
+    name: 'Octave 4 (Melodic Mid)',
+    notes: [
+      { solfege: 'Do', note: 'C4', freq: 261.63 },
+      { solfege: 'Re', note: 'D4', freq: 293.66 },
+      { solfege: 'Mi', note: 'E4', freq: 329.63 },
+      { solfege: 'Fa', note: 'F4', freq: 349.23 },
+      { solfege: 'Sol', note: 'G4', freq: 392.00 },
+      { solfege: 'La', note: 'A4', freq: 440.00 },
+      { solfege: 'Ti', note: 'B4', freq: 493.88 },
+    ],
+  },
+  {
+    name: 'Octave 5 (Sparkling High)',
+    notes: [
+      { solfege: 'Do', note: 'C5', freq: 523.25 },
+      { solfege: 'Re', note: 'D5', freq: 587.33 },
+      { solfege: 'Mi', note: 'E5', freq: 659.25 },
+      { solfege: 'Fa', note: 'F5', freq: 698.46 },
+      { solfege: 'Sol', note: 'G5', freq: 783.99 },
+      { solfege: 'La', note: 'A5', freq: 880.00 },
+      { solfege: 'Ti', note: 'B5', freq: 987.77 },
+      { solfege: 'Do', note: 'C6', freq: 1046.50 },
+    ],
+  },
 ];
 
-// Harmonious harp / celestial synth note for Octave Grid
-export function playPentatonicNote(frequency) {
+// Rich crystalline harp / music box tone
+export function playDiatonicNote(frequency) {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -74,8 +101,8 @@ export function playPentatonicNote(frequency) {
     subOsc.type = 'sine';
     subOsc.frequency.setValueAtTime(frequency * 2, ctx.currentTime);
 
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+    gain.gain.setValueAtTime(0.24, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
 
     osc.connect(gain);
     subOsc.connect(gain);
@@ -83,10 +110,10 @@ export function playPentatonicNote(frequency) {
 
     osc.start();
     subOsc.start();
-    osc.stop(ctx.currentTime + 0.6);
-    subOsc.stop(ctx.currentTime + 0.6);
+    osc.stop(ctx.currentTime + 0.7);
+    subOsc.stop(ctx.currentTime + 0.7);
   } catch (err) {
-    console.error('Octave note error:', err);
+    console.error('Diatonic note error:', err);
   }
 }
 
@@ -96,7 +123,7 @@ export function playHeartChime() {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     const note = notes[Math.floor(Math.random() * notes.length)];
 
     const osc = ctx.createOscillator();
@@ -118,13 +145,13 @@ export function playHeartChime() {
   }
 }
 
-// Joyful high arpeggio chime for kiss (+2)
+// Joyful high arpeggio chime for kiss bonus (+2)
 export function playBonusChime() {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    const notes = [659.25, 1046.5, 1318.5]; // E5, C6, E6
+    const notes = [659.25, 1046.5, 1318.5];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -239,7 +266,6 @@ export function playWorryPopSound() {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Pop + celestial chime
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
@@ -253,7 +279,6 @@ export function playWorryPopSound() {
     osc.start();
     osc.stop(ctx.currentTime + 0.09);
 
-    // Warm chord
     [523.25, 659.25, 783.99].forEach((f, i) => {
       const chime = ctx.createOscillator();
       const cGain = ctx.createGain();
@@ -304,7 +329,7 @@ export function playPaperRustleSound() {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    const notes = [440, 554.37, 659.25]; // A4, C#5, E5
+    const notes = [440, 554.37, 659.25];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();

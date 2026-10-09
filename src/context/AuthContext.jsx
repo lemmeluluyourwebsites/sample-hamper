@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
+const VALID_USERS = [
+  { username: 'influencer', password: 'influence', name: 'Influencer' },
+  { username: 'geet', password: 'hehe', name: 'Geet' },
+];
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  const [user, setUser] = useState(() => {
     try {
-      return sessionStorage.getItem('hamper_unlocked') === 'true';
+      const saved = sessionStorage.getItem('hamper_unlocked_user');
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return false;
+      return null;
     }
   });
 
@@ -34,7 +40,6 @@ export function AuthProvider({ children }) {
         setIsMusicPlaying(true);
       } catch (err) {
         console.warn('Autoplay blocked or audio error:', err);
-        // Will be played on first user interaction
       }
     }
   };
@@ -55,14 +60,18 @@ export function AuthProvider({ children }) {
     const u = (username || '').trim().toLowerCase();
     const p = (password || '').trim();
 
-    // Strictly accepts Username: influencer and Password: influence
-    if (u === 'influencer' && p === 'influence') {
+    const matched = VALID_USERS.find(
+      (entry) => entry.username.toLowerCase() === u && entry.password === p
+    );
+
+    if (matched) {
+      const userData = { username: matched.username, name: matched.name };
       try {
-        sessionStorage.setItem('hamper_unlocked', 'true');
+        sessionStorage.setItem('hamper_unlocked_user', JSON.stringify(userData));
       } catch (e) {
         console.error(e);
       }
-      setIsAuthenticated(true);
+      setUser(userData);
       playBackgroundMusic();
       return { success: true };
     }
@@ -75,7 +84,7 @@ export function AuthProvider({ children }) {
 
   const lock = () => {
     try {
-      sessionStorage.removeItem('hamper_unlocked');
+      sessionStorage.removeItem('hamper_unlocked_user');
     } catch (e) {
       console.error(e);
     }
@@ -83,13 +92,14 @@ export function AuthProvider({ children }) {
       audioRef.current.pause();
       setIsMusicPlaying(false);
     }
-    setIsAuthenticated(false);
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
+        isAuthenticated: Boolean(user),
+        user,
         login,
         lock,
         isMusicPlaying,
