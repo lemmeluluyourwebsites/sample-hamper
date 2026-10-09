@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Sparkles, Camera, RotateCcw, Heart } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { Sparkles, Camera, RotateCcw, Heart, Send, Check, Share2, X, Download, Loader2 } from 'lucide-react';
 import { playPetalPluckSound, playBonusChime, playPopSound } from '../../utils/audio';
 
 export default function PetalByPetal() {
@@ -22,7 +23,11 @@ export default function PetalByPetal() {
   const [lastPluckedText, setLastPluckedText] = useState(null);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [winnerText, setWinnerText] = useState('');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [shareStatus, setShareStatus] = useState(null);
+
   const dragStartPos = useRef({});
+  const captureCardRef = useRef(null);
 
   const handlePointerDown = (index, e) => {
     dragStartPos.current[index] = {
@@ -103,6 +108,111 @@ export default function PetalByPetal() {
     }
   };
 
+  const handleTakeScreenshot = async () => {
+    if (!captureCardRef.current || isCapturing) return;
+    setIsCapturing(true);
+    setShareStatus('Snapping screenshot...');
+    playPopSound();
+
+    try {
+      const canvas = await html2canvas(captureCardRef.current, {
+        backgroundColor: '#120716',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataUrl;
+      downloadLink.download = `our-love-verdict-${Date.now()}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      playBonusChime();
+      setShareStatus('Screenshot saved to your photos! 📸✨');
+      setTimeout(() => setShareStatus(null), 4000);
+    } catch (err) {
+      console.error('Screenshot failed:', err);
+      setShareStatus('Screenshot ready! You can also take a quick screen capture 📸');
+      setTimeout(() => setShareStatus(null), 4000);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  const handleSendToHim = async () => {
+    if (!captureCardRef.current || isCapturing) return;
+    setIsCapturing(true);
+    setShareStatus('Preparing keepsake...');
+    playPopSound();
+
+    const shareText = `Official verdict from our Cozy Hamper: ${winnerText}! 💖🌸 Screenshot proof ready!`;
+
+    try {
+      const canvas = await html2canvas(captureCardRef.current, {
+        backgroundColor: '#120716',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      let sharedViaNative = false;
+
+      if (blob && navigator.canShare) {
+        const file = new File([blob], 'our-love-verdict.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              title: 'Official Love Verdict 💕',
+              text: shareText,
+              files: [file],
+            });
+            sharedViaNative = true;
+            playBonusChime();
+            setShareStatus('Sent to him! 💌✨');
+            setTimeout(() => setShareStatus(null), 3500);
+          } catch (shareErr) {
+            if (shareErr.name !== 'AbortError') {
+              console.warn('Native file share failed:', shareErr);
+            }
+          }
+        }
+      }
+
+      if (!sharedViaNative) {
+        // Download the screenshot image
+        const dataUrl = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = dataUrl;
+        downloadLink.download = 'our-love-verdict.png';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        // Open WhatsApp or messaging app link
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+        window.open(whatsappUrl, '_blank');
+
+        playBonusChime();
+        setShareStatus('Screenshot saved & opening chat to send! 💌');
+        setTimeout(() => setShareStatus(null), 4500);
+      }
+    } catch (err) {
+      console.error('Send to him failed:', err);
+      const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+      window.open(fallbackUrl, '_blank');
+      setShareStatus('Opening chat to share your love verdict! 💌');
+      setTimeout(() => setShareStatus(null), 4000);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   const handleResetFlower = () => {
     playPopSound();
     setPetals(generateRandomPetals());
@@ -110,6 +220,7 @@ export default function PetalByPetal() {
     setLastPluckedText(null);
     setShowWinnerModal(false);
     setWinnerText('');
+    setShareStatus(null);
   };
 
   return (
@@ -245,87 +356,135 @@ export default function PetalByPetal() {
         )}
       </div>
 
-      {/* Finishing Victory Moment: Dedicated Couple Keepsake & Mandatory Boyfriend Screenshot Modal */}
+      {/* Finishing Victory Moment: Dedicated Couple Keepsake, Real Screenshot, and Send to Him */}
       <AnimatePresence>
         {showWinnerModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.85, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.85, y: 30 }}
               transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-              className="relative w-full max-w-sm glass-panel rounded-3xl p-6 border-2 border-pink-400 shadow-[0_0_50px_rgba(255,133,161,0.5)] text-center overflow-hidden"
+              className="relative w-full max-w-sm max-h-[92vh] overflow-y-auto glass-panel rounded-3xl p-4 sm:p-5 border-2 border-pink-400 shadow-[0_0_50px_rgba(255,133,161,0.5)] text-center"
             >
-              {/* Couple Keepsake Polaroid Frame feature */}
-              <div className="w-full max-w-[240px] mx-auto p-2.5 rounded-2xl bg-white shadow-2xl mb-4 transform -rotate-1 border border-pink-200">
-                <div className="w-full h-44 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-200">
-                  <img
-                    src="/assets/photo-2.jpg"
-                    alt="Couple special memory"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = '/assets/photo2.jpg';
-                    }}
-                  />
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  playPopSound();
+                  setShowWinnerModal(false);
+                }}
+                className="absolute top-3 right-3 z-30 p-2 rounded-full text-pink-300/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* CAPTURABLE KEEPSAKE CARD (Used by html2canvas for screenshot & sharing) */}
+              <div
+                ref={captureCardRef}
+                className="w-full rounded-2xl p-3.5 bg-[#14081c] border border-pink-400/40 shadow-inner flex flex-col items-center"
+              >
+                {/* Couple Keepsake Polaroid Frame feature */}
+                <div className="w-full max-w-[230px] p-2.5 rounded-2xl bg-white shadow-2xl mb-3.5 transform -rotate-1 border border-pink-200">
+                  <div className="w-full h-44 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-200">
+                    <img
+                      src="/assets/photo-2.jpg"
+                      crossOrigin="anonymous"
+                      alt="Couple special memory"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/assets/photo2.jpg';
+                      }}
+                    />
+                  </div>
+                  <div className="mt-2 text-center text-xs font-serif font-bold text-neutral-800 tracking-wide">
+                    Our Forever Bloom 🌸
+                  </div>
                 </div>
-                <div className="mt-2 text-center text-xs font-serif font-bold text-neutral-800 tracking-wide">
-                  Our Forever Bloom 🌸
+
+                {/* Verified Verdict & Text */}
+                {winnerText === 'I love him more' ? (
+                  <>
+                    <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-xs font-bold text-[#ff85a1] mb-1.5">
+                      <Sparkles className="w-3.5 h-3.5 fill-[#ff85a1]" />
+                      <span>Official Verified Verdict 🏆</span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-1.5">
+                      You Love Him More! 💖
+                    </h3>
+
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-pink-900/50 to-rose-900/50 border border-pink-400/50 my-2 text-xs sm:text-sm font-semibold text-pink-100 shadow-[0_0_15px_rgba(255,133,161,0.3)]">
+                      "Screenshot this and send this to your boyfriend to let him know that you love him more! 📸"
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-xs font-bold text-[#ff85a1] mb-1.5">
+                      <Heart className="w-3.5 h-3.5 fill-[#ff85a1]" />
+                      <span>He Loves You More! 🧸</span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-1.5">
+                      He Loves You Endlessly! 💕
+                    </h3>
+
+                    <p className="text-xs text-pink-200/80 my-2 px-2">
+                      The petals have spoken, his heart overflows with infinite warmth and love for you every day.
+                    </p>
+                  </>
+                )}
+
+                <div className="mt-1 text-[10px] text-pink-300/60 font-medium tracking-wider">
+                  Digital Cozy Hamper 🌸 Forever & Always
                 </div>
               </div>
 
-              {/* Verified Verdict & Mandatory Screenshot Prompt */}
-              {winnerText === 'I love him more' ? (
-                <>
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-xs font-bold text-[#ff85a1] mb-2">
-                    <Sparkles className="w-3.5 h-3.5 fill-[#ff85a1]" />
-                    <span>Official Verified Verdict 🏆</span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    You Love Him More! 💖
-                  </h3>
-
-                  {/* MANDATORY PROMPT TEXT REQUIREMENT */}
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-900/50 to-rose-900/50 border border-pink-400/50 my-3 text-sm font-semibold text-pink-100 shadow-[0_0_20px_rgba(255,133,161,0.3)]">
-                    "Screenshot this and send this to your boyfriend to let him know that you love him more! 📸"
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-xs font-bold text-[#ff85a1] mb-2">
-                    <Heart className="w-3.5 h-3.5 fill-[#ff85a1]" />
-                    <span>He Loves You More! 🧸</span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    He Loves You Endlessly! 💕
-                  </h3>
-
-                  <p className="text-xs text-pink-200/80 mb-4 px-2">
-                    The petals have spoken, his heart overflows with infinite warmth and love for you every day.
-                  </p>
-                </>
+              {/* Status Message / Notification */}
+              {shareStatus && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 px-3 py-1.5 rounded-xl bg-pink-500/20 border border-pink-400/40 text-xs text-pink-200 font-semibold"
+                >
+                  {shareStatus}
+                </motion.div>
               )}
 
-              <div className="flex gap-2.5 mt-4">
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 mt-3.5">
+                {/* Main Action: Send it to him */}
                 <button
-                  onClick={handleResetFlower}
-                  className="flex-1 min-h-[48px] rounded-2xl bg-pink-500/20 border border-pink-400/40 text-xs font-semibold text-white hover:bg-pink-500/30 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
+                  disabled={isCapturing}
+                  onClick={handleSendToHim}
+                  className="w-full min-h-[48px] rounded-2xl bg-gradient-to-r from-[#ff85a1] via-[#f472b6] to-[#ec4899] text-black font-bold text-sm shadow-[0_0_25px_rgba(255,133,161,0.5)] hover:shadow-[0_0_35px_rgba(255,133,161,0.7)] flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition disabled:opacity-60"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Bloom Again</span>
+                  {isCapturing ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  ) : (
+                    <Send className="w-4 h-4 text-black fill-black" />
+                  )}
+                  <span>Send it to him 💌</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    playPopSound();
-                    setShowWinnerModal(false);
-                  }}
-                  className="flex-1 min-h-[48px] rounded-2xl bg-gradient-to-r from-[#ff85a1] to-[#f472b6] text-black font-bold text-xs shadow-[0_0_20px_rgba(255,133,161,0.4)] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Got it! 📸</span>
-                </button>
+                {/* Secondary Row: Take Screenshot & Bloom Again */}
+                <div className="flex gap-2">
+                  <button
+                    disabled={isCapturing}
+                    onClick={handleTakeScreenshot}
+                    className="flex-1 min-h-[44px] rounded-2xl bg-pink-500/20 border border-pink-400/40 hover:bg-pink-500/30 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition disabled:opacity-60"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-[#ff85a1]" />
+                    <span>Take Screenshot 📸</span>
+                  </button>
+
+                  <button
+                    onClick={handleResetFlower}
+                    className="flex-1 min-h-[44px] rounded-2xl bg-pink-500/10 border border-pink-400/25 hover:bg-pink-500/20 text-pink-200 hover:text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Bloom Again 🔄</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

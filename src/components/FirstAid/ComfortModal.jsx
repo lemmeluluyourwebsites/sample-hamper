@@ -8,22 +8,19 @@ const COMFORT_DATA = {
     title: 'A Big, Tight Bear Hug 🧸',
     media: '/assets/hug.gif',
     badge: 'Warmest Embrace',
-    message:
-      "Wrap both arms tightly around yourself and squeeze. Close your eyes. Imagine my chin resting on your head, holding you safe from the entire world. Everything will be okay, my sweet girl, I'm right here with you.",
+    message: 'Wrapping you in the softest, safest embrace right now',
   },
   kiss: {
     title: 'Sweet Gentle Kisses 💋',
     media: '/assets/kiss.gif',
     badge: 'Infinite Affection',
-    message:
-      "One little kiss on your forehead, soft kisses across your eyelashes, and the sweetest kiss on your lips. You are so precious, so deeply adored, the sweetest part of my entire universe.",
+    message: 'A sweet peck on your cheek to melt away the stress',
   },
   both: {
     title: 'The Full Comfort Treatment 💖',
     media: '/assets/both.gif',
     badge: 'Hug + Endless Kisses',
-    message:
-      "Holding you as close as possible while raining soft kisses on you until you smile. Rest your head on my chest, listen to my heartbeat, and let all the stress melt away. You are never doing life alone, I love you so much.",
+    message: 'All the cuddles, love, and sweet kisses reserved just for you',
   },
 };
 
