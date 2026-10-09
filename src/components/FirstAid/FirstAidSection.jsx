@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Flame, Sparkles, MessageCircleHeart } from 'lucide-react';
+import { Heart, Flame, MessageCircleHeart } from 'lucide-react';
 import VentModal from './VentModal';
 import ComfortModal from './ComfortModal';
 import LoveJarModal from './LoveJarModal';
+import OpenWhenCard from './OpenWhenCard';
 import { playPopSound } from '../../utils/audio';
 
 export default function FirstAidSection() {
@@ -27,7 +28,7 @@ export default function FirstAidSection() {
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-24 flex flex-col items-center">
+    <div className="w-full h-full overflow-y-auto px-4 pt-16 pb-28 flex flex-col items-center">
       <div className="w-full max-w-md space-y-4">
         {/* Header Greeting */}
         <motion.div
@@ -127,7 +128,10 @@ export default function FirstAidSection() {
           </div>
         </motion.div>
 
-        {/* Feature 3: Reasons I Love You Jar */}
+        {/* Feature 3: My Open—When Letters (Placed right before Reasons I Love You Jar) */}
+        <OpenWhenCard />
+
+        {/* Feature 4: Reasons I Love You Jar */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
