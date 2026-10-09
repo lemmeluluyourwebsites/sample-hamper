@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #000000;
+    --pink-pastel: #ffd1dc;
+    --pink-baby: #ffb6c1;
+    --pink-accent: #ff85a1;
+    --pink-vibrant: #f472b6;
+    --pink-deep: #ec4899;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #000000;
+    color: #ffd1dc;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(14, 14, 18, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 182, 193, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: rgba(22, 18, 24, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 182, 193, 0.22);
+}
+
+.glass-bubble {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), rgba(255, 182, 193, 0.25) 55%, rgba(244, 114, 182, 0.12) 100%);
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(255, 133, 161, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.pink-glow {
+  box-shadow: 0 0 20px rgba(255, 133, 161, 0.35), 0 0 40px rgba(255, 182, 193, 0.15);
+}
+
+.pink-glow-strong {
+  box-shadow: 0 0 25px rgba(255, 133, 161, 0.65), 0 0 50px rgba(255, 182, 193, 0.35);
+}
+
+.text-pink-glow {
+  text-shadow: 0 0 12px rgba(255, 133, 161, 0.65);
+}
+
+@keyframes pulseHalo {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 133, 161, 0.3), 0 0 35px rgba(255, 182, 193, 0.15);
+    border-color: rgba(255, 182, 193, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 133, 161, 0.6), 0 0 55px rgba(255, 182, 193, 0.3);
+    border-color: rgba(255, 182, 193, 0.7);
+  }
+}
+
+.pulse-glow {
+  animation: pulseHalo 2.5s infinite ease-in-out;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 182, 193, 0.3);
+  border-radius: 9999px;
+}
